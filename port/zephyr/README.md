@@ -63,7 +63,7 @@ The nrf5340 is a dual core SoC, where one core is used for Bluetooth HCI functio
 the other for the high level application logic. So both cores need to be programmed separately.
 Using the nRF5340-DK for example allows debug output on both cores to separate UART ports.
 For the nRF5340 a network core firmware is required, which one depends on the use-case.
-With 2a and 2b two options are given.
+With 2. an options is given.
 
 ### 1. Building the application
 build using:
@@ -75,7 +75,7 @@ with debug:
 west build -b nrf5340dk/nrf5340/cpuapp -- -DOVERLAY_CONFIG=debug_overlay.conf
 ```
 
-### 2a. Using zephyr network core image
+### 2. Using zephyr network core image
 the `hci_rgmsg` application needs to be loaded first to the network core.
 Configure network core by selecting the appropriate config file, for example `nrf5340_cpunet_iso-bt_ll_sw_split.conf`.
 additionally it's required to increase the main stack size from
@@ -95,13 +95,6 @@ or with debugging
 ```sh
 west build -b nrf5340dk/nrf5340/cpunet -- -DCONF_FILE=nrf5340_cpunet_iso-bt_ll_sw_split.conf -DOVERLAY_CONFIG=debug_overlay.conf
 west flash
-```
-
-### 2b. Using Packetcraft binary network core image
-for nrf5340 the latest netcore firmware is located at [sdk-nrf](https://github.com/nrfconnect/sdk-nrf/tree/main/lib/bin/bt_ll_acs_nrf53/bin)
-to program it:
-```sh
-nrfjprog --program ble5-ctr-rpmsg_<version number>.hex --chiperase --coprocessor CP_NETWORK -r
 ```
 
 ## TODO
