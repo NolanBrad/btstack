@@ -34,20 +34,20 @@ source env.sh
 
 You can build an example using:
 ```sh
-west build -b nrf52840dk_nrf52840
+west build -b nrf52840dk/nrf52840
 ```
 
-`nrf52840dk_nrf52840` selected the Nordic nRF52840 DK. For the older nRF52 DK with nRF52832, you can specify nrf52dk_nrf52832.
+`nrf52840dk/nrf52840` selected the Nordic nRF52840 DK. For the older nRF52 DK with nRF52832, you can specify nrf52dk/nrf52832.
 To get a list of all supported Zephyr targets, run `west boards`
 
 To change zephyr platform settings use:
 ```sh
-west build -b nrf52840dk_nrf52840 -t menuconfig
+west build -b nrf52840dk/nrf52840 -t menuconfig
 ```
 
 To build a different example, e.g. the `gatt_streamer_server`, set the EXAMPLE environment variable:
 ```sh
-EXAMPLE=gatt_streamer_server west build -b nrf52840dk_nrf52840
+EXAMPLE=gatt_streamer_server west build -b nrf52840dk/nrf52840
 ```
 
 ### 2. Flash Example
@@ -68,11 +68,11 @@ With 2a and 2b two options are given.
 ### 1. Building the application
 build using:
 ```sh
-west build -b nrf5340dk_nrf5340_cpuapp
+west build -b nrf5340dk/nrf5340/cpuapp
 ```
 with debug:
 ```sh
-west build -b nrf5340dk_nrf5340_cpuapp -- -DOVERLAY_CONFIG=debug_overlay.conf
+west build -b nrf5340dk/nrf5340/cpuapp -- -DOVERLAY_CONFIG=debug_overlay.conf
 ```
 
 ### 2a. Using zephyr network core image
@@ -88,12 +88,12 @@ CONFIG_MAIN_STACK_SIZE=4096
 ```
 then the network core image can be compiled and flashed
 ```sh
-west build -b nrf5340dk_nrf5340_cpunet -- -DCONF_FILE=nrf5340_cpunet_iso-bt_ll_sw_split.conf
+west build -b nrf5340dk/nrf5340/cpunet -- -DCONF_FILE=nrf5340_cpunet_iso-bt_ll_sw_split.conf
 west flash
 ```
 or with debugging
 ```sh
-west build -b nrf5340dk_nrf5340_cpunet -- -DCONF_FILE=nrf5340_cpunet_iso-bt_ll_sw_split.conf -DOVERLAY_CONFIG=debug_overlay.conf
+west build -b nrf5340dk/nrf5340/cpunet -- -DCONF_FILE=nrf5340_cpunet_iso-bt_ll_sw_split.conf -DOVERLAY_CONFIG=debug_overlay.conf
 west flash
 ```
 
