@@ -40,7 +40,6 @@
 #include <getopt.h>
 #include <libgen.h>
 #include <limits.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,26 +50,13 @@
 #include "btstack_memory.h"
 #include "btstack_run_loop_posix.h"
 #include "btstack_run_loop.h"
-#include "btstack_signal.h"
 #include "btstack_stdin.h"
 #include "btstack_util.h"
 #include "hci_dump_posix_fs.h"
 #include "hci_dump_posix_stdout.h"
 #include "hci_transport.h"
 
-bool *shutdown_triggered = NULL;
-
-static void trigger_shutdown(void){
-    printf("CTRL-C - SIGINT received, shutting down..\n");
-    log_info("sigint_handler: shutting down");
-    if( shutdown_triggered != NULL ) {
-        *shutdown_triggered = true;
-    }
-    hci_power_control(HCI_POWER_OFF);
-    btstack_stdin_reset();
-}
-
-static char short_options[] = "+hu:l:rb:";
+static char short_options[] = "+hu:l:rb:a:";
 
 static struct option long_options[] = {
     {"help",      no_argument,       NULL, 'h'},
@@ -78,6 +64,7 @@ static struct option long_options[] = {
     {"reset-tlv", no_argument,       NULL, 'r'},
     {"tty",       required_argument, NULL, 'u'},
     {"bd-addr",   required_argument, NULL, 'b'},
+    {"baudrate",  required_argument, NULL, 'a'},
     {0, 0, 0, 0}
 };
 
@@ -86,7 +73,8 @@ static const char *help_options[] = {
     "set file to store debug output and HCI trace.",
     "reset bonding information stored in TLV.",
     "set path to Bluetooth Controller.",
-    "set random static Bluetooth address for nRF5340 with PacketCraft Controller.",
+    "set random static Bluetooth address.",
+    "set initial baudrate."
 };
 
 static const char *option_arg_name[] = {
@@ -95,6 +83,7 @@ static const char *option_arg_name[] = {
     "",
     "TTY",
     "BD_ADDR",
+    "BAUDRATE",
 };
 
 static void usage(const char *name){
@@ -106,9 +95,8 @@ static void usage(const char *name){
     }
 }
 
-int btstack_main_config(int argc, const char * argv[], hci_transport_config_uart_t *transport_config, bd_addr_t address, bool *tlv_reset, bool *shutdown ){
+int btstack_main_config(int argc, const char * argv[], hci_transport_config_uart_t *transport_config, bd_addr_t address, bool *tlv_reset ){
     btstack_assert(transport_config != NULL);
-    shutdown_triggered = shutdown;
     const char * log_file_path = NULL;
 
     int oldopterr = opterr;
@@ -139,6 +127,9 @@ int btstack_main_config(int argc, const char * argv[], hci_transport_config_uart
                     sscanf_bd_addr(optarg, address);
                 }
                 break;
+            case 'a':
+                transport_config->baudrate_init = atoi( optarg );
+                break;
             case 'h':
             default:
                 usage(argv[0]);
@@ -158,34 +149,37 @@ int btstack_main_config(int argc, const char * argv[], hci_transport_config_uart
     if (log_file_path == NULL){
         char *app_name = strndup( argv[0], PATH_MAX );
         char *device_path = strndup( transport_config->device_name, PATH_MAX );
+        char *base_name = basename( app_name );
+        btstack_strcat( pklg_path, sizeof(pklg_path), base_name );
+        btstack_strcat( pklg_path, sizeof(pklg_path), "_" );
+
         char *device = basename(device_path);
         for(unsigned i=0; i<strlen(device); ++i) {
             if(device[i] == '.') {
                 device[i] = '_';
             }
         }
-        char *base_name = basename( app_name );
-        const char *pklg_postfix = ".pklg";
-
-        btstack_strcat( pklg_path, sizeof(pklg_path), base_name );
-        btstack_strcat( pklg_path, sizeof(pklg_path), "_" );
         btstack_strcat( pklg_path, sizeof(pklg_path), device );
-        btstack_strcat( pklg_path, sizeof(pklg_path), pklg_postfix );
-        free( app_name );
+        btstack_strcat( pklg_path, sizeof(pklg_path), ".pklg" );
 
+        free( app_name );
+        free( device_path );
         log_file_path = pklg_path;
     }
     hci_dump_posix_fs_open(log_file_path, HCI_DUMP_PACKETLOGGER);
     const hci_dump_t * hci_dump_impl = hci_dump_posix_fs_get_instance();
     hci_dump_init(hci_dump_impl);
     printf("Packet Log: %s\n", log_file_path);
-
+    printf("device    : \"%s\"\n", transport_config->device_name);
+    printf("baudrate  : %d\n", transport_config->baudrate_init);
+    printf("reset tlv : %s\n", *tlv_reset?"true":"false");
+    if( address != NULL ) {
+        printf("address   : %s\n", bd_addr_to_str(address));
+    }
 #ifdef HAVE_PORTAUDIO
     btstack_audio_sink_set_instance(btstack_audio_portaudio_sink_get_instance());
     btstack_audio_source_set_instance(btstack_audio_portaudio_source_get_instance());
 #endif
 
-    // register callback for CTRL-c
-    btstack_signal_register_callback(SIGINT, &trigger_shutdown);
     return EXIT_SUCCESS;
 }

@@ -65,6 +65,7 @@
 #include "btstack_debug.h"
 #include "btstack_event.h"
 #include "btstack_main_config.h"
+#include "btstack_signal.h"
 #include "btstack_stdin.h"
 #include "btstack_tlv_posix.h"
 #include "btstack_uart.h"
@@ -75,7 +76,7 @@
 #define TLV_DB_PATH_PREFIX "/tmp/btstack_"
 #define TLV_DB_PATH_POSTFIX ".tlv"
 static char tlv_db_path[100];
-static bool tlv_reset;
+static bool tlv_reset=false;
 static const btstack_tlv_t * tlv_impl;
 static btstack_tlv_posix_t   tlv_context;
 static bd_addr_t             static_address;
@@ -92,7 +93,7 @@ static void local_version_information_handler(uint8_t * packet);
 
 static hci_transport_config_uart_t config = {
     .type = HCI_TRANSPORT_CONFIG_UART,
-    .device_name = "/dev/tty.usbmodemEF437DF524C51",
+    .device_name = "/dev/ttyACM0",
     .baudrate_init = 115200,
     .baudrate_main = 0,
     .flowcontrol = BTSTACK_UART_FLOWCONTROL_OFF,
@@ -274,11 +275,20 @@ static void local_version_information_handler(uint8_t * packet){
     }
 }
 
+static void trigger_shutdown(void){
+    printf("CTRL-C - SIGINT received, shutting down..\n");
+    log_info("sigint_handler: shutting down");
+    shutdown_triggered = true;
+    hci_power_control(HCI_POWER_OFF);
+    btstack_stdin_reset();
+}
+
 int main(int argc, const char * argv[]){
 
-    btstack_main_config( argc, argv, &config, random_address, &tlv_reset, &shutdown_triggered );
+    btstack_main_config( argc, argv, &config, random_address, &tlv_reset );
 
-    printf("H4 device: %s\n", config.device_name);
+    // register callback for CTRL-c
+    btstack_signal_register_callback(SIGINT, &trigger_shutdown);
 
     // init HCI
     const btstack_uart_t * uart_driver = btstack_uart_posix_instance();

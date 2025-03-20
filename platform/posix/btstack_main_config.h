@@ -52,7 +52,7 @@ extern "C" {
 /**
  * Provide btstack_main_config
  */
-int btstack_main_config(int argc, const char * argv[], hci_transport_config_uart_t *transport_config, bd_addr_t address, bool *tlv_reset, bool *shutdown );
+int btstack_main_config(int argc, const char * argv[], hci_transport_config_uart_t *transport_config, bd_addr_t address, bool *tlv_reset );
 
 /* API_END */
 
