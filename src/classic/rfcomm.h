@@ -143,8 +143,10 @@ typedef struct {
     
     // initial incoming credits
     uint8_t incoming_initial_credits;
-    
-    
+
+    // User assignable context per service
+    void *context;
+
 } rfcomm_service_t;
 
 // info regarding multiplexer
@@ -335,6 +337,20 @@ uint8_t rfcomm_register_service_with_initial_credits(btstack_packet_handler_t pa
  * @brief Unregister RFCOMM service.
  */
 void rfcomm_unregister_service(uint8_t service_channel);
+
+/**
+ * @brief Set context to a service.
+ * @param channel
+ * @param context
+ */
+void rfcomm_set_context_service(uint8_t channel, void *context);
+
+/**
+ * @brief Get context from a service.
+ * @param channel
+ * @return void * context
+ */
+void* rfcomm_get_context_service(uint8_t channel);
 
 /** 
  * @brief Accepts incoming RFCOMM connection.
