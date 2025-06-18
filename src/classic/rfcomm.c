@@ -2575,6 +2575,7 @@ static uint8_t rfcomm_register_service_internal(btstack_packet_handler_t packet_
     service->max_frame_size = max_frame_size;
     service->incoming_flow_control = incoming_flow_control;
     service->incoming_initial_credits = initial_credits;
+    service->context = NULL;
     
     // add to services list
     btstack_linked_list_add(&rfcomm_services, (btstack_linked_item_t *) service);
@@ -2605,6 +2606,26 @@ void rfcomm_unregister_service(uint8_t service_channel){
         // bt_send_cmd(&l2cap_unregister_service, BLUETOOTH_PROTOCOL_RFCOMM);
         l2cap_unregister_service(BLUETOOTH_PROTOCOL_RFCOMM);
     }
+}
+
+void rfcomm_set_context_service(uint8_t channel, void *context)
+{
+    rfcomm_service_t *service = rfcomm_service_for_channel(channel);
+    if (!service)
+    {
+        return;
+    }
+    service->context = context;
+}
+
+void* rfcomm_get_context_service(uint8_t channel)
+{
+    rfcomm_service_t *service = rfcomm_service_for_channel(channel);
+    if (!service)
+    {
+        return NULL;
+    }
+    return service->context;
 }
 
 uint8_t rfcomm_accept_connection(uint16_t rfcomm_cid){
