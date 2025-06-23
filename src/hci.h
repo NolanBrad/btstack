@@ -1127,6 +1127,7 @@ typedef struct {
 
     /* callbacks for events */
     btstack_linked_list_t event_handlers;
+    btstack_linked_list_t event_context_handlers;
 
 #ifdef ENABLE_CLASSIC
     /* callback for reject classic connection */

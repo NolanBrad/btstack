@@ -113,11 +113,19 @@
 // packet handler
 typedef void (*btstack_packet_handler_t) (uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size);
 
+typedef void (*btstack_packet_context_handler_t) (void *context, uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size);
+
 // packet callback supporting multiple registrations
 typedef struct {
     btstack_linked_item_t    item;
     btstack_packet_handler_t callback;
 } btstack_packet_callback_registration_t;
+
+typedef struct {
+    btstack_linked_item_t    item;
+    btstack_packet_context_handler_t callback;
+    void *context;
+} btstack_packet_context_callback_registration_t;
 
 // context callback supporting multiple registrations
 typedef struct {
