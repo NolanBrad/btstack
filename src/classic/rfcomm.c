@@ -253,7 +253,7 @@ static void rfcomm_emit_connection_request(rfcomm_channel_t *channel) {
     little_endian_store_16(event, 9, channel->rfcomm_cid);
     little_endian_store_16(event, 11, channel->multiplexer->con_handle);
     hci_dump_btstack_event( event, sizeof(event));
-	(channel->packet_handler)(HCI_EVENT_PACKET, 0, event, sizeof(event));
+	(channel->packet_handler)(HCI_EVENT_PACKET, channel->rfcomm_cid, event, sizeof(event));
 }
 
 // API Change: BTstack-0.3.50x uses
@@ -276,7 +276,7 @@ static void rfcomm_emit_channel_opened(rfcomm_channel_t *channel, uint8_t status
 	little_endian_store_16(event, pos, channel->max_frame_size); pos += 2;   // max frame size
     event[pos++] = channel->service ? 1 : 0;    // linked to service -> incoming
     hci_dump_btstack_event( event, sizeof(event));
-	(channel->packet_handler)(HCI_EVENT_PACKET, 0, event, pos);
+	(channel->packet_handler)(HCI_EVENT_PACKET, channel->rfcomm_cid, event, pos);
 
     // if channel opened successfully, also send can send now if possible
     if (status) return;
@@ -293,7 +293,7 @@ static void rfcomm_emit_channel_closed(rfcomm_channel_t * channel) {
     event[1] = sizeof(event) - 2;
     little_endian_store_16(event, 2, channel->rfcomm_cid);
     hci_dump_btstack_event( event, sizeof(event));
-	(channel->packet_handler)(HCI_EVENT_PACKET, 0, event, sizeof(event));
+	(channel->packet_handler)(HCI_EVENT_PACKET, channel->rfcomm_cid, event, sizeof(event));
 }
 
 static void rfcomm_emit_remote_line_status(rfcomm_channel_t *channel, uint8_t line_status){
@@ -304,7 +304,7 @@ static void rfcomm_emit_remote_line_status(rfcomm_channel_t *channel, uint8_t li
     little_endian_store_16(event, 2, channel->rfcomm_cid);
     event[4] = line_status;
     hci_dump_btstack_event( event, sizeof(event));
-    (channel->packet_handler)(HCI_EVENT_PACKET, 0, event, sizeof(event));
+    (channel->packet_handler)(HCI_EVENT_PACKET, channel->rfcomm_cid, event, sizeof(event));
 }
 
 static void rfcomm_emit_port_configuration(rfcomm_channel_t *channel, bool remote) {
